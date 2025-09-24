@@ -13,6 +13,10 @@ app = Client("autofilter_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_T
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
+@app.on_callback_query()
+async def cb_handler(client, callback_query):
+    await settings.callback(client, callback_query)
+
 @app.on_message(filters.group)
 async def group_handler(client, message):
     add_user(message.from_user.id)
