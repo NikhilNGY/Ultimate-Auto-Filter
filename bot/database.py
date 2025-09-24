@@ -1,14 +1,14 @@
-def add_user(user_id):
 from typing import Optional, Any, Dict, List
 from config import MONGO_DB_URI
 
-# Try to connect to MongoDB, but fall back to an in-memory store if unavailable.
+# -------------------------------
+# MongoDB / in-memory setup
+# -------------------------------
 try:
     from pymongo import MongoClient
     if MONGO_DB_URI:
         _client = MongoClient(MONGO_DB_URI, serverSelectionTimeoutMS=3000)
-        # force connection
-        _client.server_info()
+        _client.server_info()  # force connection
         _db = _client["autofilter_bot"]
         files_col = _db["files"]
         users_col = _db["users"]
@@ -18,27 +18,30 @@ try:
     else:
         raise Exception("MONGO_DB_URI not configured")
 except Exception:
-    # Simple in-memory fallback for local/dev usage
+    # fallback in-memory
     files_col = {}
     users_col = set()
     filters_col = {}
     settings_col = {}
     broadcast_col = {}
 
-
+# -------------------------------
 # Helper functions
+# -------------------------------
 def _ensure_id(val: Any) -> Optional[int]:
     try:
         return int(val)
     except Exception:
         return None
 
-def add_user(user_id: int):
+# -------------------------------
+# User functions
+# -------------------------------
+def add_user(user_id: Any):
     uid = _ensure_id(user_id)
     if uid is None:
         return
     try:
-        # MongoDB
         if hasattr(users_col, "insert_one"):
             if not users_col.find_one({"_id": uid}):
                 users_col.insert_one({"_id": uid})
@@ -47,6 +50,9 @@ def add_user(user_id: int):
     except Exception:
         pass
 
+# -------------------------------
+# File functions
+# -------------------------------
 def add_file(file_id: Any, file_name: str, message_id: Any, chat_id: Any):
     if file_id is None:
         return
@@ -77,6 +83,9 @@ def delete_all_files():
     except Exception:
         pass
 
+# -------------------------------
+# Filter functions
+# -------------------------------
 def add_filter(keyword: str, reply: str):
     if not keyword:
         return
@@ -119,6 +128,9 @@ def delete_all_filters():
     except Exception:
         pass
 
+# -------------------------------
+# Settings functions
+# -------------------------------
 def get_settings(chat_id: Any) -> Dict[str, Any]:
     cid = _ensure_id(chat_id) or str(chat_id)
     default = {"_id": cid, "force_sub": True, "auto_delete": True, "shortlink": True, "manual_filter": True, "auto_delete_time": None}
@@ -134,7 +146,6 @@ def get_settings(chat_id: Any) -> Dict[str, Any]:
     except Exception:
         return default
 
-
 def update_setting(chat_id: Any, key: str, value: Any):
     cid = _ensure_id(chat_id) or str(chat_id)
     try:
@@ -146,5 +157,3 @@ def update_setting(chat_id: Any, key: str, value: Any):
             settings_col[str(cid)] = s
     except Exception:
         pass
-
-# end of database.py
