@@ -3,26 +3,62 @@ from config import API_ID, API_HASH, BOT_TOKEN, ADMIN_IDS
 from database import add_user
 from plugins import auto_filter, auto_delete, files_delete, manual_filters, force_subscribe, broadcast, settings
 import asyncio
-from plugins import auto_delete
 
-await auto_delete.schedule_delete(client, sent_message)
-
+# Initialize bot client
 app = Client("autofilter_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
+
+# -----------------------------
+# Private messages: block usage
+# -----------------------------
 @app.on_message(filters.private)
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
+
+# -----------------------------
+# Callback queries (Settings)
+# -----------------------------
 @app.on_callback_query()
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
 
+
+# -----------------------------
+# Group messages: main handler
+# -----------------------------
 @app.on_message(filters.group)
 async def group_handler(client, message):
+    # Add user to DB
     add_user(message.from_user.id)
-    # Here we can add plugins hooks (auto filter, manual filters, etc.)
-    await auto_filter.handle(client, message)
-    await manual_filters.handle(client, message)
+
+    # Force subscribe check (multi-channel)
     await force_subscribe.check(client, message)
 
-app.run()# Main bot starter
+    # Handle auto filter
+    await auto_filter.handle(client, message)
+
+    # Handle manual filters
+    await manual_filters.handle(client, message)
+
+    # Example: auto-delete bot reply (optional)
+    # sent_message = await message.reply("Example bot reply that will be deleted")
+    # asyncio.create_task(auto_delete.schedule_delete(client, sent_message))
+
+
+# -----------------------------
+# Admin broadcast command
+# -----------------------------
+@app.on_message(filters.command("broadcast") & filters.user(ADMIN_IDS))
+async def broadcast_handler(client, message):
+    if len(message.command) < 2:
+        await message.reply("Usage: /broadcast <message>")
+        return
+    text = message.text.split(None, 1)[1]
+    await broadcast.broadcast(client, message, text)
+
+
+# -----------------------------
+# Run the bot
+# -----------------------------
+app.run()
