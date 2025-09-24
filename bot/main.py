@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.raw import functions
 from config import API_ID, API_HASH, BOT_TOKEN, ADMIN_IDS
 from database import add_user
 from plugins import auto_filter, auto_delete, files_delete, manual_filters, force_subscribe, broadcast, settings
@@ -22,6 +23,7 @@ async def pm_block(client, message):
 @app.on_callback_query()
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
+    await auto_filter.callback(client, callback_query)
 
 
 # -----------------------------
@@ -41,10 +43,6 @@ async def group_handler(client, message):
     # Handle manual filters
     await manual_filters.handle(client, message)
 
-    # Example: auto-delete bot reply (optional)
-    # sent_message = await message.reply("Example bot reply that will be deleted")
-    # asyncio.create_task(auto_delete.schedule_delete(client, sent_message))
-
 
 # -----------------------------
 # Admin broadcast command
@@ -59,6 +57,20 @@ async def broadcast_handler(client, message):
 
 
 # -----------------------------
-# Run the bot
+# Force time sync to avoid BadMsgNotification
 # -----------------------------
-app.run()
+async def sync_time():
+    async with app:
+        try:
+            await app.send(functions.help.GetConfig())
+        except Exception as e:
+            print("Time sync failed:", e)
+
+
+# -----------------------------
+# Run the bot with time sync
+# -----------------------------
+if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(sync_time())
+    app.run()
