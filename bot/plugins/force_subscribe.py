@@ -1,0 +1,1 @@
+# Force subscribe plugin

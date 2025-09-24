@@ -1,0 +1,1 @@
+# Files delete plugin
