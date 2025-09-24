@@ -22,8 +22,12 @@ async def callback(client, callback_query):
     }
     key = key_map.get(data)
     if key:
-        current = get_settings(chat_id)[key]
+        s = get_settings(chat_id)
+        current = s.get(key, False)
         update_setting(chat_id, key, not current)
-        await callback_query.answer(f"{key.replace('_',' ').title()} set to {'ON' if not current else 'OFF'}", show_alert=True)
-        await callback_query.message.delete()
-        await show_settings(client, callback_query.message)# Settings plugin
+        await callback_query.answer(f"{key.replace('_',' ').title()} set to {'ON' if not current else 'OFF'}", show_alert=False)
+        try:
+            await callback_query.message.delete()
+        except:
+            pass
+        await show_settings(client, callback_query.message)

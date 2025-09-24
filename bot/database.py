@@ -1,49 +1,150 @@
-from pymongo import MongoClient
+def add_user(user_id):
+from typing import Optional, Any, Dict, List
 from config import MONGO_DB_URI
 
-client = MongoClient(MONGO_DB_URI)
-db = client["autofilter_bot"]
+# Try to connect to MongoDB, but fall back to an in-memory store if unavailable.
+try:
+    from pymongo import MongoClient
+    if MONGO_DB_URI:
+        _client = MongoClient(MONGO_DB_URI, serverSelectionTimeoutMS=3000)
+        # force connection
+        _client.server_info()
+        _db = _client["autofilter_bot"]
+        files_col = _db["files"]
+        users_col = _db["users"]
+        filters_col = _db["filters"]
+        settings_col = _db["settings"]
+        broadcast_col = _db["broadcast"]
+    else:
+        raise Exception("MONGO_DB_URI not configured")
+except Exception:
+    # Simple in-memory fallback for local/dev usage
+    files_col = {}
+    users_col = set()
+    filters_col = {}
+    settings_col = {}
+    broadcast_col = {}
 
-# Collections
-files_col = db["files"]
-users_col = db["users"]
-filters_col = db["filters"]
-settings_col = db["settings"]
-broadcast_col = db["broadcast"]
 
 # Helper functions
-def add_user(user_id):
-    if not users_col.find_one({"_id": user_id}):
-        users_col.insert_one({"_id": user_id})
+def _ensure_id(val: Any) -> Optional[int]:
+    try:
+        return int(val)
+    except Exception:
+        return None
 
-def add_file(file_id, file_name, message_id, chat_id):
-    if not files_col.find_one({"file_id": file_id}):
-        files_col.insert_one({"file_id": file_id, "file_name": file_name, "message_id": message_id, "chat_id": chat_id})
+def add_user(user_id: int):
+    uid = _ensure_id(user_id)
+    if uid is None:
+        return
+    try:
+        # MongoDB
+        if hasattr(users_col, "insert_one"):
+            if not users_col.find_one({"_id": uid}):
+                users_col.insert_one({"_id": uid})
+        else:
+            users_col.add(uid)
+    except Exception:
+        pass
 
-def delete_file(file_id):
-    files_col.delete_one({"file_id": file_id})
+def add_file(file_id: Any, file_name: str, message_id: Any, chat_id: Any):
+    if file_id is None:
+        return
+    try:
+        if hasattr(files_col, "insert_one"):
+            if not files_col.find_one({"file_id": file_id}):
+                files_col.insert_one({"file_id": file_id, "file_name": file_name, "message_id": message_id, "chat_id": chat_id})
+        else:
+            files_col[str(file_id)] = {"file_id": file_id, "file_name": file_name, "message_id": message_id, "chat_id": chat_id}
+    except Exception:
+        pass
+
+def delete_file(file_id: Any):
+    try:
+        if hasattr(files_col, "delete_one"):
+            files_col.delete_one({"file_id": file_id})
+        else:
+            files_col.pop(str(file_id), None)
+    except Exception:
+        pass
 
 def delete_all_files():
-    files_col.delete_many({})
+    try:
+        if hasattr(files_col, "delete_many"):
+            files_col.delete_many({})
+        else:
+            files_col.clear()
+    except Exception:
+        pass
 
-def add_filter(keyword, reply):
-    filters_col.insert_one({"keyword": keyword.lower(), "reply": reply})
+def add_filter(keyword: str, reply: str):
+    if not keyword:
+        return
+    k = keyword.lower()
+    try:
+        if hasattr(filters_col, "insert_one"):
+            filters_col.insert_one({"keyword": k, "reply": reply})
+        else:
+            filters_col[k] = {"keyword": k, "reply": reply}
+    except Exception:
+        pass
 
-def delete_filter(keyword):
-    filters_col.delete_one({"keyword": keyword.lower()})
+def delete_filter(keyword: str):
+    if not keyword:
+        return
+    k = keyword.lower()
+    try:
+        if hasattr(filters_col, "delete_one"):
+            filters_col.delete_one({"keyword": k})
+        else:
+            filters_col.pop(k, None)
+    except Exception:
+        pass
 
-def get_filters():
-    return list(filters_col.find({}))
+def get_filters() -> List[Dict[str, Any]]:
+    try:
+        if hasattr(filters_col, "find"):
+            return list(filters_col.find({}))
+        else:
+            return list(filters_col.values())
+    except Exception:
+        return []
 
 def delete_all_filters():
-    filters_col.delete_many({})
+    try:
+        if hasattr(filters_col, "delete_many"):
+            filters_col.delete_many({})
+        else:
+            filters_col.clear()
+    except Exception:
+        pass
 
-def get_settings(chat_id):
-    s = settings_col.find_one({"_id": chat_id})
-    if not s:
-        settings_col.insert_one({"_id": chat_id, "force_sub": True, "auto_delete": True, "shortlink": True, "manual_filter": True})
-        return get_settings(chat_id)
-    return s
+def get_settings(chat_id: Any) -> Dict[str, Any]:
+    cid = _ensure_id(chat_id) or str(chat_id)
+    default = {"_id": cid, "force_sub": True, "auto_delete": True, "shortlink": True, "manual_filter": True, "auto_delete_time": None}
+    try:
+        if hasattr(settings_col, "find_one"):
+            s = settings_col.find_one({"_id": cid})
+            if not s:
+                settings_col.insert_one(default)
+                return default
+            return s
+        else:
+            return settings_col.get(str(cid), default)
+    except Exception:
+        return default
 
-def update_setting(chat_id, key, value):
-    settings_col.update_one({"_id": chat_id}, {"$set": {key: value}})# MongoDB handler
+
+def update_setting(chat_id: Any, key: str, value: Any):
+    cid = _ensure_id(chat_id) or str(chat_id)
+    try:
+        if hasattr(settings_col, "update_one"):
+            settings_col.update_one({"_id": cid}, {"$set": {key: value}}, upsert=True)
+        else:
+            s = settings_col.get(str(cid), {"_id": cid})
+            s[key] = value
+            settings_col[str(cid)] = s
+    except Exception:
+        pass
+
+# end of database.py

@@ -2,10 +2,15 @@ from pyrogram import Client, filters
 from pyrogram.raw import functions
 from config import API_ID, API_HASH, BOT_TOKEN, ADMIN_IDS
 from database import add_user
-from plugins import auto_filter, auto_delete, files_delete, manual_filters, force_subscribe, broadcast, settings
 import asyncio
 
-app = Client("autofilter_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+# Import plugins lazily and defensively
+from plugins import auto_filter, auto_delete, files_delete, manual_filters, force_subscribe, broadcast, settings
+
+if not API_ID or not API_HASH or not BOT_TOKEN:
+    raise RuntimeError("API_ID, API_HASH and BOT_TOKEN must be set in environment")
+
+app = Client("autofilter_bot", api_id=int(API_ID), api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 # -----------------------------
 # Private messages
@@ -54,7 +59,8 @@ async def start_bot():
     await app.start()
     try:
         # Sync Telegram server time
-        await app.send(functions.help.GetConfig())
+        # Use raw GetConfig to warm up connection (no response needed here)
+        await app.invoke(functions.help.GetConfig())
     except Exception as e:
         print("Time sync failed:", e)
     print("Bot started successfully")
