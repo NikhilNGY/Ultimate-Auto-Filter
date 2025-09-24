@@ -1,12 +1,39 @@
+import asyncio
+import time
+import sys
+from datetime import datetime, timezone
+
 from pyrogram import Client, filters
 from pyrogram.raw import functions
+
 from config import API_ID, API_HASH, BOT_TOKEN, ADMIN_IDS
 from database import add_user
-import asyncio
-
-# Import plugins lazily and defensively
 from plugins import auto_filter, auto_delete, files_delete, manual_filters, force_subscribe, broadcast, settings
 
+# -----------------------------
+# System time check
+# -----------------------------
+MAX_OFFSET = 5  # seconds
+
+def check_system_time():
+    """
+    Exits if system time is off by more than MAX_OFFSET seconds.
+    """
+    now_utc = datetime.now(timezone.utc).timestamp()
+    system_time = time.time()
+    offset = abs(system_time - now_utc)
+    if offset > MAX_OFFSET:
+        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
+        print("Please sync your server time (NTP/chrony) before starting the bot.")
+        sys.exit(1)
+    else:
+        print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
+
+check_system_time()
+
+# -----------------------------
+# Verify environment
+# -----------------------------
 if not API_ID or not API_HASH or not BOT_TOKEN:
     raise RuntimeError("API_ID, API_HASH and BOT_TOKEN must be set in environment")
 
@@ -19,7 +46,6 @@ app = Client("autofilter_bot", api_id=int(API_ID), api_hash=API_HASH, bot_token=
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
-
 # -----------------------------
 # Callback queries
 # -----------------------------
@@ -27,7 +53,6 @@ async def pm_block(client, message):
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
-
 
 # -----------------------------
 # Group messages
@@ -38,7 +63,6 @@ async def group_handler(client, message):
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
-
 
 # -----------------------------
 # Admin broadcast
@@ -51,21 +75,18 @@ async def broadcast_handler(client, message):
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
 
-
 # -----------------------------
-# Sync time before starting
+# Bot startup
 # -----------------------------
 async def start_bot():
     await app.start()
     try:
-        # Sync Telegram server time
-        # Use raw GetConfig to warm up connection (no response needed here)
+        # Warm-up connection / sync Telegram server time
         await app.invoke(functions.help.GetConfig())
     except Exception as e:
         print("Time sync failed:", e)
-    print("Bot started successfully")
+    print("[INFO] Bot started successfully")
     await app.idle()  # Keep bot running
-
 
 # -----------------------------
 # Run
