@@ -15,12 +15,12 @@ MONGO_DB_URI = os.environ.get("MONGO_DB_URI") or None
 
 # Channel / group defaults (allow comma separated list of ids or usernames)
 INDEX_CHANNEL_ID = int(os.environ.get("INDEX_CHANNEL_ID")) if os.environ.get("INDEX_CHANNEL_ID") else None
-FORCE_SUB_CHANNELS = [s for s in os.environ.get("FORCE_SUB_CHANNELS", "").split(",") if s]
+FORCE_SUB_CHANNELS = [s for s in os.environ.get("FORCE_SUB_CHANNELS", "-1002055023335").split(",") if s]
 
 SHORTLINK_URL = os.environ.get("SHORTLINK_URL") or None
 SHORTLINK_API = os.environ.get("SHORTLINK_API") or None
 
-ADMIN_IDS = _csv_to_int_list(os.environ.get("ADMIN_IDS", ""))
+ADMIN_IDS = _csv_to_int_list(os.environ.get("ADMIN_IDS", "2098589219 2068233407"))
 
 # default auto delete time in seconds
 AUTO_DELETE_TIME = int(os.environ.get("AUTO_DELETE_TIME", "3000"))
