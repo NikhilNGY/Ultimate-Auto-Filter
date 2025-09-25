@@ -9,7 +9,7 @@ jobs:
     name: Flake8 Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v4
         with:
           python-version: "3.x"
@@ -20,7 +20,7 @@ jobs:
     name: isort Auto-Fix
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v4
@@ -39,7 +39,7 @@ jobs:
     name: Black Auto-Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-python@v4
