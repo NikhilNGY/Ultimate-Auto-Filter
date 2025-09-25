@@ -1,10 +1,8 @@
 from pyrogram import types
-
 from database import get_settings, update_setting
 
-
 async def show_settings(client, message):
-    settings = get_settings(message.chat.id)  # <-- synchronous
+    settings = get_settings(message.chat.id)  # synchronous, no await
     keyboard = [
         [
             types.InlineKeyboardButton(
@@ -47,9 +45,9 @@ async def callback(client, callback_query):
     }
     key = key_map.get(data)
     if key:
-        s = get_settings(chat_id)  # <-- synchronous
+        s = get_settings(chat_id)  # synchronous
         current = s.get(key, False)
-        update_setting(chat_id, key, not current)  # <-- synchronous
+        update_setting(chat_id, key, not current)
         await callback_query.answer(
             f"{key.replace('_',' ').title()} set to {'ON' if not current else 'OFF'}",
             show_alert=False,
