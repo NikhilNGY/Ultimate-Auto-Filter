@@ -1,14 +1,13 @@
 import asyncio
 import urllib.parse
 from datetime import datetime, timedelta
-
 from pyrogram import types
 
 from database import files_col, get_settings
 from plugins import shortlink
 
 ITEMS_PER_PAGE = 10  # Buttons per page
-CACHE_EXPIRATION = 300  # seconds (5 minutes)
+CACHE_EXPIRATION = 300  # seconds
 BUTTONS_TIMEOUT = 60  # seconds after which inline buttons are removed
 
 # In-memory cache: chat_id -> last search results
@@ -29,14 +28,14 @@ async def cache_cleaner():
 # Handle group message search
 # -----------------------------
 async def handle(client, message):
-    settings = await get_settings(message.chat.id)
+    settings = get_settings(message.chat.id)  # synchronous
     if not settings.get("manual_filter", False) or not message.text:
         return
 
     query = message.text.strip().lower()
     files_list = list(files_col.find({"file_name": {"$regex": query}}))
     if not files_list:
-        return  # Silent if nothing found
+        return
 
     search_cache[message.chat.id] = {
         "query": query,
@@ -63,18 +62,18 @@ async def send_page(client, message, chat_id, page: int):
     if not page_files:
         return
 
-    settings = await get_settings(chat_id)
+    settings = get_settings(chat_id)  # synchronous
     buttons = []
     for f in page_files:
         link = f"t.me/c/{f['chat_id']}/{f['message_id']}"
         if settings.get("shortlink", False):
-            link = await shortlink.shorten(link)
+            link = await shortlink.shorten(link)  # async
         buttons.append([types.InlineKeyboardButton(f["file_name"], url=link)])
 
     total_pages = (len(files_list) + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE
     encoded_query = urllib.parse.quote(cached["query"])
 
-    # Navigation buttons with current page highlighted
+    # Navigation buttons
     nav_buttons = []
     if page > 0:
         nav_buttons.append(
@@ -87,7 +86,6 @@ async def send_page(client, message, chat_id, page: int):
                 "⬅️ Back", callback_data=f"auto_prev_{page-1}_{chat_id}_{encoded_query}"
             )
         )
-    # Current page disabled
     nav_buttons.append(
         types.InlineKeyboardButton(f"Page {page+1}/{total_pages}", callback_data="noop")
     )
@@ -115,7 +113,9 @@ async def send_page(client, message, chat_id, page: int):
     asyncio.create_task(remove_buttons_only(sent_msg, BUTTONS_TIMEOUT))
 
 
+# -----------------------------
 # Remove buttons only (keep message)
+# -----------------------------
 async def remove_buttons_only(message, delay: int):
     await asyncio.sleep(delay)
     try:
@@ -124,7 +124,9 @@ async def remove_buttons_only(message, delay: int):
         pass
 
 
-# Handle pagination callback queries
+# -----------------------------
+# Pagination callback queries
+# -----------------------------
 async def callback(client, callback_query):
     data = callback_query.data
     if data == "noop":
@@ -143,17 +145,13 @@ async def callback(client, callback_query):
     )
     query = urllib.parse.unquote(encoded_query)
 
-    settings = await get_settings(chat_id)
+    settings = get_settings(chat_id)  # synchronous
     if not settings.get("manual_filter", False):
         await callback_query.answer("Manual filters disabled.", show_alert=True)
         return
 
     cached = search_cache.get(chat_id)
-    if (
-        not cached
-        or cached["query"] != query
-        or cached["expires_at"] < datetime.utcnow()
-    ):
+    if not cached or cached["query"] != query or cached["expires_at"] < datetime.utcnow():
         search_cache.pop(chat_id, None)
         try:
             await callback_query.message.edit_reply_markup(None)
