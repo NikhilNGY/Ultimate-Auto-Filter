@@ -1,5 +1,4 @@
 from typing import Any, Dict, List, Optional
-
 from config import MONGO_DB_URI
 
 # -------------------------------
@@ -11,7 +10,7 @@ try:
 
         _client = MongoClient(MONGO_DB_URI, serverSelectionTimeoutMS=3000)
         _client.server_info()  # force connection
-        _db = _client["autofilter_bot"]
+        _db = _client["Ultimate-Auto-Filter"]
         files_col = _db["files"]
         users_col = _db["users"]
         filters_col = _db["filters"]
