@@ -152,7 +152,11 @@ async def callback(client, callback_query):
         return
 
     cached = search_cache.get(chat_id)
-    if not cached or cached["query"] != query or cached["expires_at"] < datetime.utcnow():
+    if (
+        not cached
+        or cached["query"] != query
+        or cached["expires_at"] < datetime.utcnow()
+    ):
         search_cache.pop(chat_id, None)
         try:
             await callback_query.message.edit_reply_markup(None)

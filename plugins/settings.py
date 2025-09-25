@@ -1,6 +1,7 @@
 from pyrogram import types
 from database import get_settings, update_setting
 
+
 async def show_settings(client, message):
     settings = get_settings(message.chat.id)  # synchronous, no await
     keyboard = [
