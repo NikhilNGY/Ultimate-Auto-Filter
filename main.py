@@ -11,16 +11,10 @@ from aiohttp import web
 from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
 
-from database import add_file, add_user, delete_file, get_settings, update_setting
-from plugins import (
-    auto_delete,
-    auto_filter,
-    broadcast,
-    files_delete,
-    force_subscribe,
-    manual_filters,
-    settings,
-)
+from database import (add_file, add_user, delete_file, get_settings,
+                      update_setting)
+from plugins import (auto_delete, auto_filter, broadcast, files_delete,
+                     force_subscribe, manual_filters, settings)
 
 # -----------------------------
 # Logging Setup
