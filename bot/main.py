@@ -40,7 +40,9 @@ file_handler = RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCou
 file_handler.setLevel(logging.INFO)
 
 # Formatter
-formatter = logging.Formatter("[%(asctime)s] [%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S")
+formatter = logging.Formatter(
+    "[%(asctime)s] [%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S"
+)
 console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 
@@ -53,14 +55,18 @@ logger.addHandler(file_handler)
 # -----------------------------
 MAX_OFFSET = 5  # seconds
 
+
 def check_system_time():
     now_utc = datetime.now(timezone.utc).timestamp()
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        logger.error(f"System time is off by {offset:.2f}s. Telegram requires correct time.")
+        logger.error(
+            f"System time is off by {offset:.2f}s. Telegram requires correct time."
+        )
         sys.exit(1)
     logger.info(f"System time synchronized ({offset:.2f}s offset).")
+
 
 check_system_time()
 
@@ -73,7 +79,9 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_IDS = os.environ.get("ADMIN_IDS", "")
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
-    logger.error("API_ID, API_HASH, and BOT_TOKEN must be set in environment variables!")
+    logger.error(
+        "API_ID, API_HASH, and BOT_TOKEN must be set in environment variables!"
+    )
     sys.exit(1)
 
 try:
@@ -101,6 +109,7 @@ app = Client(
     bot_token=BOT_TOKEN,
 )
 
+
 # -----------------------------
 # Handlers
 # -----------------------------
@@ -108,10 +117,12 @@ app = Client(
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
+
 @app.on_callback_query()
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
+
 
 @app.on_message(filters.group)
 async def group_handler(client, message):
@@ -119,6 +130,7 @@ async def group_handler(client, message):
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
+
 
 @app.on_message(filters.command("broadcast") & filters.user(ADMIN_IDS))
 async def broadcast_handler(client, message):
@@ -128,15 +140,18 @@ async def broadcast_handler(client, message):
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
 
+
 @app.on_message(filters.command("health") & filters.user(ADMIN_IDS))
 async def health_check(client, message):
     await message.reply("✅ Bot is running fine.")
+
 
 # -----------------------------
 # HTTP health check
 # -----------------------------
 async def health(request):
     return web.Response(text="✅ Bot is running")
+
 
 async def run_health_server():
     web_app = web.Application()
@@ -148,6 +163,7 @@ async def run_health_server():
     logger.info("Health server running on port 8080")
     while True:
         await asyncio.sleep(3600)
+
 
 # -----------------------------
 # Run bot with auto-restart
