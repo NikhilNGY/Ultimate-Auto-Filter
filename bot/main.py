@@ -20,15 +20,19 @@ from plugins import (
 # -----------------------------
 MAX_OFFSET = 5  # seconds
 
+
 def check_system_time():
     now_utc = datetime.now(timezone.utc).timestamp()
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
+        print(
+            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
+        )
         sys.exit(1)
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
+
 
 check_system_time()
 
@@ -41,7 +45,9 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_IDS = os.environ.get("ADMIN_IDS", "")
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
-    print("[ERROR] API_ID, API_HASH, and BOT_TOKEN must be set in environment variables!")
+    print(
+        "[ERROR] API_ID, API_HASH, and BOT_TOKEN must be set in environment variables!"
+    )
     sys.exit(1)
 
 try:
@@ -62,8 +68,9 @@ app = Client(
     session_name="session/autofilter_bot",
     api_id=int(API_ID),
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
 )
+
 
 # -----------------------------
 # Private messages
@@ -72,6 +79,7 @@ app = Client(
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
+
 # -----------------------------
 # Callback queries
 # -----------------------------
@@ -79,6 +87,7 @@ async def pm_block(client, message):
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
+
 
 # -----------------------------
 # Group messages
@@ -90,6 +99,7 @@ async def group_handler(client, message):
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
 
+
 # -----------------------------
 # Admin broadcast
 # -----------------------------
@@ -100,6 +110,7 @@ async def broadcast_handler(client, message):
         return
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
+
 
 # -----------------------------
 # Run bot
