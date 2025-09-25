@@ -1,4 +1,5 @@
 from urllib.parse import quote_plus
+
 import requests  # synchronous HTTP requests
 
 from config import SHORTLINK_API
