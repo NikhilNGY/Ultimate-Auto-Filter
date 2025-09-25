@@ -2,11 +2,20 @@ import os
 import sys
 import time
 from datetime import datetime, timezone
+import asyncio
+from aiohttp import web
 
-from database import add_user
-from plugins import (auto_delete, auto_filter, broadcast, files_delete,
-                     force_subscribe, manual_filters, settings)
 from pyrogram import Client, filters
+from database import add_user
+from plugins import (
+    auto_delete,
+    auto_filter,
+    broadcast,
+    files_delete,
+    force_subscribe,
+    manual_filters,
+    settings,
+)
 
 # -----------------------------
 # System time check
@@ -34,7 +43,7 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_IDS = os.environ.get("ADMIN_IDS", "")
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
-    print("[ERROR] API_ID, API_HASH, and BOT_TOKEN must be set in environment variables!")
+    print("[ERROR] API_ID, API_HASH, and BOT_TOKEN must be set!")
     sys.exit(1)
 
 try:
@@ -45,11 +54,10 @@ except Exception:
 # -----------------------------
 # Ensure session folder exists
 # -----------------------------
-if not os.path.exists("session"):
-    os.makedirs("session")
+os.makedirs("session", exist_ok=True)
 
 # -----------------------------
-# Initialize bot (Pyrogram v2)
+# Initialize bot
 # -----------------------------
 app = Client(
     "session/Ultimate-Auto-Filter",  # session file
@@ -95,15 +103,28 @@ async def broadcast_handler(client, message):
     await broadcast.broadcast(client, message, text)
 
 # -----------------------------
-# Health check for Koyeb
+# Health endpoint for Koyeb
 # -----------------------------
-@app.on_message(filters.command("health") & filters.user(ADMIN_IDS))
-async def health_check(client, message):
-    await message.reply("✅ Bot is running fine.")
+async def health(request):
+    return web.Response(text="✅ Bot is running fine.", status=200)
+
+def run_health_server():
+    web_app = web.Application()
+    web_app.router.add_get("/", health)
+    web_app.router.add_get("/health", health)
+    web.run_app(web_app, port=8080)
 
 # -----------------------------
 # Run bot
 # -----------------------------
 if __name__ == "__main__":
+    import threading
+    from aiohttp import web
+
     print("Instance created. Starting bot...")
+
+    # Start health server in a separate thread
+    threading.Thread(target=run_health_server, daemon=True).start()
+
+    # Run Pyrogram bot
     app.run()
