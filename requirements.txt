@@ -1,5 +1,15 @@
+# Telegram client
 pyrogram==2.0.106
+tgcrypto>=1.2.0          # Optional but highly recommended for Pyrogram speedups
+
+# Database
 pymongo==4.15.1
-aiohttp==3.12.15
-Flask==3.1.2
-dnspython==2.8.0
+dnspython==2.8.0          # Required for MongoDB SRV connections
+
+# HTTP and web frameworks
+aiohttp==3.12.15          # Async HTTP client/server
+Flask==3.1.2              # Lightweight web framework
+requests>=2.31.0          # Required for some plugins
+
+# Optional utilities
+python-dotenv>=1.0.0      # If you use .env for config
