@@ -1,4 +1,3 @@
-import asyncio
 import sys
 import time
 from datetime import datetime, timezone
@@ -22,7 +21,6 @@ from pyrogram.raw import functions
 # -----------------------------
 MAX_OFFSET = 5  # seconds
 
-
 def check_system_time():
     """
     Exits if system time is off by more than MAX_OFFSET seconds.
@@ -39,7 +37,6 @@ def check_system_time():
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
 
-
 check_system_time()
 
 # -----------------------------
@@ -48,10 +45,12 @@ check_system_time()
 if not API_ID or not API_HASH or not BOT_TOKEN:
     raise RuntimeError("API_ID, API_HASH and BOT_TOKEN must be set in environment")
 
+# -----------------------------
+# Initialize bot
+# -----------------------------
 app = Client(
     "autofilter_bot", api_id=int(API_ID), api_hash=API_HASH, bot_token=BOT_TOKEN
 )
-
 
 # -----------------------------
 # Private messages
@@ -60,7 +59,6 @@ app = Client(
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
-
 # -----------------------------
 # Callback queries
 # -----------------------------
@@ -68,7 +66,6 @@ async def pm_block(client, message):
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
-
 
 # -----------------------------
 # Group messages
@@ -79,7 +76,6 @@ async def group_handler(client, message):
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
-
 
 # -----------------------------
 # Admin broadcast
@@ -92,23 +88,10 @@ async def broadcast_handler(client, message):
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
 
-
 # -----------------------------
-# Bot startup
-# -----------------------------
-async def start_bot():
-    await app.start()
-    try:
-        # Warm-up connection / sync Telegram server time
-        await app.invoke(functions.help.GetConfig())
-    except Exception as e:
-        print("Time sync failed:", e)
-    print("[INFO] Bot started successfully")
-    await app.idle()  # Keep bot running
-
-
-# -----------------------------
-# Run
+# Run bot
 # -----------------------------
 if __name__ == "__main__":
-    asyncio.run(start_bot())
+    print("Instance created. Starting bot...")
+    # Pyrogram v2: run() blocks and keeps bot alive
+    app.run()
