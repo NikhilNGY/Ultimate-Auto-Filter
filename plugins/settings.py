@@ -1,5 +1,6 @@
-from database import get_settings, update_setting
 from pyrogram import types
+
+from database import get_settings, update_setting
 
 
 async def show_settings(client, message):
