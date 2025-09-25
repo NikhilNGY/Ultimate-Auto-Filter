@@ -23,22 +23,18 @@ log_file = "logs/bot.log"
 logger = logging.getLogger("AutoFilterBot")
 logger.setLevel(logging.INFO)
 
-# Console handler
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.INFO)
 
-# File handler with rotation (5 MB per file, keep 5 files)
 file_handler = RotatingFileHandler(log_file, maxBytes=5 * 1024 * 1024, backupCount=5)
 file_handler.setLevel(logging.INFO)
 
-# Formatter
 formatter = logging.Formatter(
     "[%(asctime)s] [%(levelname)s] %(message)s", "%Y-%m-%d %H:%M:%S"
 )
 console_handler.setFormatter(formatter)
 file_handler.setFormatter(formatter)
 
-# Add handlers
 logger.addHandler(console_handler)
 logger.addHandler(file_handler)
 
@@ -161,11 +157,13 @@ async def run_health_server():
 # Run bot with auto-restart
 # -----------------------------
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    # Start health server ONCE (fixed port 8080)
+    loop.create_task(run_health_server())
+
     while True:
         try:
             logger.info("Instance created. Starting bot...")
-            loop = asyncio.get_event_loop()
-            loop.create_task(run_health_server())
             app.run()
         except FloodWait as e:
             wait_time = int(getattr(e, "value", 15))
