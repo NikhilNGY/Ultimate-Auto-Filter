@@ -11,8 +11,15 @@ from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
 
 from database import add_user
-from plugins import (auto_delete, auto_filter, broadcast, files_delete,
-                     force_subscribe, manual_filters, settings)
+from plugins import (
+    auto_delete,
+    auto_filter,
+    broadcast,
+    files_delete,
+    force_subscribe,
+    manual_filters,
+    settings,
+)
 
 # -----------------------------
 # Logging Setup

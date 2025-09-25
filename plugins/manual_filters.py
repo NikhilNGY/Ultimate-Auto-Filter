@@ -1,7 +1,12 @@
 from pyrogram import filters
 
-from database import (add_filter, delete_all_filters, delete_filter,
-                      get_filters, get_settings)
+from database import (
+    add_filter,
+    delete_all_filters,
+    delete_filter,
+    get_filters,
+    get_settings,
+)
 
 
 async def handle(client, message):
