@@ -1,5 +1,10 @@
-from database import (add_filter, delete_all_filters, delete_filter,
-                      get_filters, get_settings)
+from database import (
+    add_filter,
+    delete_all_filters,
+    delete_filter,
+    get_filters,
+    get_settings,
+)
 from pyrogram import filters
 
 
