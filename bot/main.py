@@ -22,15 +22,19 @@ from plugins import (
 # -----------------------------
 MAX_OFFSET = 5  # seconds
 
+
 def check_system_time():
     now_utc = datetime.now(timezone.utc).timestamp()
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
+        print(
+            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
+        )
         sys.exit(1)
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
+
 
 check_system_time()
 
@@ -66,12 +70,14 @@ app = Client(
     bot_token=BOT_TOKEN,
 )
 
+
 # -----------------------------
 # Private messages
 # -----------------------------
 @app.on_message(filters.private)
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
+
 
 # -----------------------------
 # Callback queries
@@ -80,6 +86,7 @@ async def pm_block(client, message):
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
+
 
 # -----------------------------
 # Group messages
@@ -90,6 +97,7 @@ async def group_handler(client, message):
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
+
 
 # -----------------------------
 # Admin broadcast
@@ -102,17 +110,20 @@ async def broadcast_handler(client, message):
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
 
+
 # -----------------------------
 # Health endpoint for Koyeb
 # -----------------------------
 async def health(request):
     return web.Response(text="✅ Bot is running fine.", status=200)
 
+
 def run_health_server():
     web_app = web.Application()
     web_app.router.add_get("/", health)
     web_app.router.add_get("/health", health)
     web.run_app(web_app, port=8080)
+
 
 # -----------------------------
 # Run bot
