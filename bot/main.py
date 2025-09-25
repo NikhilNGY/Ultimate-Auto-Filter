@@ -10,6 +10,7 @@ from plugins import (
     auto_filter,
     broadcast,
     files_delete,
+    fix_code_reviewbot,
     force_subscribe,
     manual_filters,
     settings,
