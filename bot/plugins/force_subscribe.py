@@ -1,6 +1,7 @@
-from config import FORCE_SUB_CHANNELS
 from database import get_settings
 from pyrogram import types
+
+from config import FORCE_SUB_CHANNELS
 
 
 async def check(client, message):

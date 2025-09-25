@@ -2,8 +2,9 @@ import re
 from typing import Any, List
 
 import aiohttp
-from config import SHORTLINK_API
 from pyrogram import types
+
+from config import SHORTLINK_API
 
 
 # -----------------------------
