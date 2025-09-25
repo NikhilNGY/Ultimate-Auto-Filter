@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  Ultimate-Auto-Filter:
+    build: .
+    container_name: Ultimate-Auto-Filter
+    environment:
+      API_ID: "YOUR_API_ID"
+      API_HASH: "YOUR_API_HASH"
+      BOT_TOKEN: "YOUR_BOT_TOKEN"
+      ADMIN_IDS: "123456789,987654321"
+    restart: always
