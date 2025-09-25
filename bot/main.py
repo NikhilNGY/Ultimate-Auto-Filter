@@ -1,21 +1,14 @@
+import asyncio
 import os
 import sys
 import time
 from datetime import datetime, timezone
-import asyncio
-from aiohttp import web
 
-from pyrogram import Client, filters
+from aiohttp import web
 from database import add_user
-from plugins import (
-    auto_delete,
-    auto_filter,
-    broadcast,
-    files_delete,
-    force_subscribe,
-    manual_filters,
-    settings,
-)
+from plugins import (auto_delete, auto_filter, broadcast, files_delete,
+                     force_subscribe, manual_filters, settings)
+from pyrogram import Client, filters
 
 # -----------------------------
 # System time check
@@ -130,6 +123,7 @@ def run_health_server():
 # -----------------------------
 if __name__ == "__main__":
     import threading
+
     from aiohttp import web
 
     print("Instance created. Starting bot...")
