@@ -68,12 +68,14 @@ def add_file(file_id: Any, file_name: str, message_id: Any, chat_id: Any):
     try:
         if hasattr(files_col, "insert_one"):
             if not files_col.find_one({"file_id": file_id}):
-                files_col.insert_one({
-                    "file_id": file_id,
-                    "file_name": file_name,
-                    "message_id": message_id,
-                    "chat_id": chat_id,
-                })
+                files_col.insert_one(
+                    {
+                        "file_id": file_id,
+                        "file_name": file_name,
+                        "message_id": message_id,
+                        "chat_id": chat_id,
+                    }
+                )
         else:
             files_col[str(file_id)] = {
                 "file_id": file_id,
