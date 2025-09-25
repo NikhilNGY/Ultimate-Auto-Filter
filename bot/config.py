@@ -1,6 +1,7 @@
 import os
 from typing import List
 
+
 # Environment / runtime configuration
 # It's safer to keep defaults empty so deployments must explicitly set credentials.
 def _csv_to_int_list(s: str) -> List[int]:

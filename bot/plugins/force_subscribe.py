@@ -1,6 +1,7 @@
-from pyrogram import types
-from database import get_settings
 from config import FORCE_SUB_CHANNELS
+from database import get_settings
+from pyrogram import types
+
 
 async def check(client, message):
     settings = get_settings(message.chat.id)

@@ -1,4 +1,5 @@
-from database import files_col, delete_file
+from database import delete_file, files_col
+
 
 async def delete_seeded_file(client, file_id):
     f = files_col.find_one({"file_id": file_id})

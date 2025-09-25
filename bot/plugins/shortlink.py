@@ -1,6 +1,7 @@
+from urllib.parse import quote_plus
+
 import aiohttp
 from config import SHORTLINK_API
-from urllib.parse import quote_plus
 
 
 async def shorten(url: str) -> str:

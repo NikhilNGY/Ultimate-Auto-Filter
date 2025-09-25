@@ -1,5 +1,6 @@
 from database import users_col
 
+
 async def broadcast(client, message, text):
     if message.from_user.id not in client.ADMIN_IDS:
         await message.reply("❌ You are not authorized!")
