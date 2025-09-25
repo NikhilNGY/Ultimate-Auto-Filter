@@ -3,12 +3,17 @@ import sys
 import time
 from datetime import datetime, timezone
 
-from aiohttp import web
-from database import add_user
-from plugins import (auto_delete, auto_filter, broadcast, files_delete,
-                     force_subscribe, manual_filters, settings)
 from pyrogram import Client, filters
-from pyrogram.types import CallbackQuery, Message
+from database import add_user
+from plugins import (
+    auto_delete,
+    auto_filter,
+    broadcast,
+    files_delete,
+    force_subscribe,
+    manual_filters,
+    settings,
+)
 
 # -----------------------------
 # System time check
@@ -20,9 +25,12 @@ def check_system_time():
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
+        print(
+            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
+        )
         sys.exit(1)
-    print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
+    else:
+        print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
 
 check_system_time()
 
@@ -44,27 +52,33 @@ except Exception:
     ADMIN_IDS = []
 
 # -----------------------------
-# Initialize bot (Pyrogram v2)
+# Ensure session folder exists
+# -----------------------------
+if not os.path.exists("session"):
+    os.makedirs("session")
+
+# -----------------------------
+# Initialize bot
 # -----------------------------
 app = Client(
-    "autofilter_bot",  # session name (optional for bots)
+    session_name="session/autofilter_bot",
     api_id=int(API_ID),
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
 )
 
 # -----------------------------
 # Private messages
 # -----------------------------
 @app.on_message(filters.private)
-async def pm_block(client: Client, message: Message):
+async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
 # -----------------------------
 # Callback queries
 # -----------------------------
 @app.on_callback_query()
-async def cb_handler(client: Client, callback_query: CallbackQuery):
+async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
 
@@ -72,7 +86,7 @@ async def cb_handler(client: Client, callback_query: CallbackQuery):
 # Group messages
 # -----------------------------
 @app.on_message(filters.group)
-async def group_handler(client: Client, message: Message):
+async def group_handler(client, message):
     add_user(message.from_user.id)
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
@@ -82,7 +96,7 @@ async def group_handler(client: Client, message: Message):
 # Admin broadcast
 # -----------------------------
 @app.on_message(filters.command("broadcast") & filters.user(ADMIN_IDS))
-async def broadcast_handler(client: Client, message: Message):
+async def broadcast_handler(client, message):
     if len(message.command) < 2:
         await message.reply("Usage: /broadcast <message>")
         return
@@ -90,22 +104,15 @@ async def broadcast_handler(client: Client, message: Message):
     await broadcast.broadcast(client, message, text)
 
 # -----------------------------
-# Minimal HTTP health check for Koyeb
+# Health check for Koyeb
 # -----------------------------
-async def handle(request):
-    return web.Response(text="OK")
-
-def start_health_server():
-    app_web = web.Application()
-    app_web.add_routes([web.get("/", handle)])
-    # Run in background
-    import threading
-    threading.Thread(target=lambda: web.run_app(app_web, port=8080), daemon=True).start()
+@app.on_message(filters.command("health") & filters.user(ADMIN_IDS))
+async def health_check(client, message):
+    await message.reply("✅ Bot is running fine.")
 
 # -----------------------------
 # Run bot
 # -----------------------------
 if __name__ == "__main__":
     print("Instance created. Starting bot...")
-    start_health_server()  # optional, for Koyeb HTTP health check
     app.run()
