@@ -2,6 +2,10 @@ import requests
 from config import REVIEWBOT_URL
 from pyrogram import Client, filters
 
+# Warn if REVIEWBOT_URL is still the placeholder
+if REVIEWBOT_URL == "https://example.com":
+    print("⚠️ REVIEWBOT_URL is set to placeholder. Replace it with the real Reviewbot URL for /fixcode to work.")
+
 
 @Client.on_message(filters.command("fixcode") & filters.private)
 async def fix_code(client, message):
@@ -13,6 +17,13 @@ async def fix_code(client, message):
     if not code_text:
         await message.reply_text(
             "Please provide the code to fix.\nExample:\n`/fixcode print('Hello World`"
+        )
+        return
+
+    # If using placeholder URL, notify and skip sending
+    if REVIEWBOT_URL == "https://example.com":
+        await message.reply_text(
+            "⚠️ Reviewbot URL is not set. Please configure REVIEWBOT_URL in config.py"
         )
         return
 
