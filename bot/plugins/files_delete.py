@@ -10,6 +10,7 @@ async def delete_seeded_file(client, file_id):
             pass
         delete_file(file_id)
 
+
 async def delete_all_files(client):
     all_files = list(files_col.find({}))
     for f in all_files:
@@ -17,4 +18,4 @@ async def delete_all_files(client):
             await client.delete_messages(f["chat_id"], f["message_id"])
         except:
             pass
-    files_col.delete_many({})# Files delete plugin
+    files_col.delete_many({})  # Files delete plugin

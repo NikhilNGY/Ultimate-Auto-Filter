@@ -1,5 +1,10 @@
-from database import (add_filter, delete_all_filters, delete_filter,
-                      get_filters, get_settings)
+from database import (
+    add_filter,
+    delete_all_filters,
+    delete_filter,
+    get_filters,
+    get_settings,
+)
 from pyrogram import filters
 
 
@@ -18,7 +23,7 @@ async def handle(client, message):
         add_filter(keyword, reply)
         await message.reply(f"✅ Filter added for '{keyword}'")
     elif text.startswith("/del "):
-        keyword = text.split(None,1)[1]
+        keyword = text.split(None, 1)[1]
         delete_filter(keyword)
         await message.reply(f"✅ Filter deleted for '{keyword}'")
     elif text.startswith("/delall"):
@@ -29,5 +34,5 @@ async def handle(client, message):
         if not fs:
             await message.reply("No filters added.")
             return
-        msg = "Filters:\n" + "\n".join([f['keyword'] for f in fs])
-        await message.reply(msg)# Manual filters plugin
+        msg = "Filters:\n" + "\n".join([f["keyword"] for f in fs])
+        await message.reply(msg)  # Manual filters plugin

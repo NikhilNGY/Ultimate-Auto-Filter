@@ -4,6 +4,7 @@ from pyrogram import filters, types
 
 ITEMS_PER_PAGE = 10  # Buttons per page
 
+
 # -----------------------------
 # Handle group message search
 # -----------------------------
@@ -40,14 +41,22 @@ async def send_page(client, message, files_list, page: int):
         settings = get_settings(message.chat.id)
         if settings["shortlink"]:
             link = await shortlink.shorten(link)
-        buttons.append([types.InlineKeyboardButton(f['file_name'], url=link)])
+        buttons.append([types.InlineKeyboardButton(f["file_name"], url=link)])
 
     # Navigation buttons
     nav_buttons = []
     if start > 0:
-        nav_buttons.append(types.InlineKeyboardButton("⬅️ Back", callback_data=f"auto_prev_{page-1}_{message.chat.id}"))
+        nav_buttons.append(
+            types.InlineKeyboardButton(
+                "⬅️ Back", callback_data=f"auto_prev_{page-1}_{message.chat.id}"
+            )
+        )
     if end < len(files_list):
-        nav_buttons.append(types.InlineKeyboardButton("Next ➡️", callback_data=f"auto_next_{page+1}_{message.chat.id}"))
+        nav_buttons.append(
+            types.InlineKeyboardButton(
+                "Next ➡️", callback_data=f"auto_next_{page+1}_{message.chat.id}"
+            )
+        )
 
     if nav_buttons:
         buttons.append(nav_buttons)

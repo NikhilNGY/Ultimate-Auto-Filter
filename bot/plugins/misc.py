@@ -9,10 +9,12 @@ from pyrogram import types
 # -----------------------------
 # Pagination helper for inline buttons
 # -----------------------------
-def paginate_buttons(items: List[Any], page: int = 0, items_per_page: int = 10, prefix: str = "file_"):
+def paginate_buttons(
+    items: List[Any], page: int = 0, items_per_page: int = 10, prefix: str = "file_"
+):
     """
     Create inline keyboard buttons with pagination.
-    
+
     :param items: List of items to paginate (dicts with 'file_name' and 'link')
     :param page: Current page index (0-based)
     :param items_per_page: Number of buttons per page
@@ -25,14 +27,20 @@ def paginate_buttons(items: List[Any], page: int = 0, items_per_page: int = 10, 
 
     for item in items[start:end]:
         # item must contain 'file_name' and 'link'
-        keyboard.append([types.InlineKeyboardButton(item['file_name'], url=item['link'])])
+        keyboard.append(
+            [types.InlineKeyboardButton(item["file_name"], url=item["link"])]
+        )
 
     # Navigation buttons
     nav_buttons = []
     if start > 0:
-        nav_buttons.append(types.InlineKeyboardButton("⬅️ Back", callback_data=f"{prefix}prev_{page-1}"))
+        nav_buttons.append(
+            types.InlineKeyboardButton("⬅️ Back", callback_data=f"{prefix}prev_{page-1}")
+        )
     if end < len(items):
-        nav_buttons.append(types.InlineKeyboardButton("Next ➡️", callback_data=f"{prefix}next_{page+1}"))
+        nav_buttons.append(
+            types.InlineKeyboardButton("Next ➡️", callback_data=f"{prefix}next_{page+1}")
+        )
 
     if nav_buttons:
         keyboard.append(nav_buttons)
@@ -64,7 +72,9 @@ async def shorten_link(url: str) -> str:
 # -----------------------------
 # Fuzzy search helper
 # -----------------------------
-def fuzzy_search(query: str, items: List[dict], key: str = "file_name", limit: int = 50) -> List[dict]:
+def fuzzy_search(
+    query: str, items: List[dict], key: str = "file_name", limit: int = 50
+) -> List[dict]:
     """
     Return list of items matching the query using simple case-insensitive substring search.
     Can be replaced by advanced fuzzy matching if needed.
@@ -98,4 +108,4 @@ def safe_int(val, default=0):
     try:
         return int(val)
     except:
-        return default# Misc utilities
+        return default  # Misc utilities

@@ -19,4 +19,5 @@ async def shorten(url: str) -> str:
     except Exception:
         return url
 
+
 # Shortlink plugin

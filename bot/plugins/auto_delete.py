@@ -12,4 +12,4 @@ async def schedule_delete(client, message):
     try:
         await message.delete()
     except:
-        pass# Auto delete plugin
+        pass  # Auto delete plugin

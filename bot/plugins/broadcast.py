@@ -14,4 +14,6 @@ async def broadcast(client, message, text):
             success += 1
         except:
             failed += 1
-    await message.reply(f"Broadcast completed!\n✅ Success: {success}\n❌ Failed: {failed}")# Broadcast plugin
+    await message.reply(
+        f"Broadcast completed!\n✅ Success: {success}\n❌ Failed: {failed}"
+    )  # Broadcast plugin

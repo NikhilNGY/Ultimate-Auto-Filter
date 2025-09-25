@@ -7,6 +7,7 @@ from config import MONGO_DB_URI
 # -------------------------------
 try:
     from pymongo import MongoClient
+
     if MONGO_DB_URI:
         _client = MongoClient(MONGO_DB_URI, serverSelectionTimeoutMS=3000)
         _client.server_info()  # force connection
@@ -26,6 +27,7 @@ except Exception:
     settings_col = {}
     broadcast_col = {}
 
+
 # -------------------------------
 # Helper functions
 # -------------------------------
@@ -34,6 +36,7 @@ def _ensure_id(val: Any) -> Optional[int]:
         return int(val)
     except Exception:
         return None
+
 
 # -------------------------------
 # User functions
@@ -51,6 +54,7 @@ def add_user(user_id: Any):
     except Exception:
         pass
 
+
 # -------------------------------
 # File functions
 # -------------------------------
@@ -60,11 +64,24 @@ def add_file(file_id: Any, file_name: str, message_id: Any, chat_id: Any):
     try:
         if hasattr(files_col, "insert_one"):
             if not files_col.find_one({"file_id": file_id}):
-                files_col.insert_one({"file_id": file_id, "file_name": file_name, "message_id": message_id, "chat_id": chat_id})
+                files_col.insert_one(
+                    {
+                        "file_id": file_id,
+                        "file_name": file_name,
+                        "message_id": message_id,
+                        "chat_id": chat_id,
+                    }
+                )
         else:
-            files_col[str(file_id)] = {"file_id": file_id, "file_name": file_name, "message_id": message_id, "chat_id": chat_id}
+            files_col[str(file_id)] = {
+                "file_id": file_id,
+                "file_name": file_name,
+                "message_id": message_id,
+                "chat_id": chat_id,
+            }
     except Exception:
         pass
+
 
 def delete_file(file_id: Any):
     try:
@@ -75,6 +92,7 @@ def delete_file(file_id: Any):
     except Exception:
         pass
 
+
 def delete_all_files():
     try:
         if hasattr(files_col, "delete_many"):
@@ -83,6 +101,7 @@ def delete_all_files():
             files_col.clear()
     except Exception:
         pass
+
 
 # -------------------------------
 # Filter functions
@@ -99,6 +118,7 @@ def add_filter(keyword: str, reply: str):
     except Exception:
         pass
 
+
 def delete_filter(keyword: str):
     if not keyword:
         return
@@ -111,6 +131,7 @@ def delete_filter(keyword: str):
     except Exception:
         pass
 
+
 def get_filters() -> List[Dict[str, Any]]:
     try:
         if hasattr(filters_col, "find"):
@@ -119,6 +140,7 @@ def get_filters() -> List[Dict[str, Any]]:
             return list(filters_col.values())
     except Exception:
         return []
+
 
 def delete_all_filters():
     try:
@@ -129,12 +151,20 @@ def delete_all_filters():
     except Exception:
         pass
 
+
 # -------------------------------
 # Settings functions
 # -------------------------------
 def get_settings(chat_id: Any) -> Dict[str, Any]:
     cid = _ensure_id(chat_id) or str(chat_id)
-    default = {"_id": cid, "force_sub": True, "auto_delete": True, "shortlink": True, "manual_filter": True, "auto_delete_time": None}
+    default = {
+        "_id": cid,
+        "force_sub": True,
+        "auto_delete": True,
+        "shortlink": True,
+        "manual_filter": True,
+        "auto_delete_time": None,
+    }
     try:
         if hasattr(settings_col, "find_one"):
             s = settings_col.find_one({"_id": cid})
@@ -146,6 +176,7 @@ def get_settings(chat_id: Any) -> Dict[str, Any]:
             return settings_col.get(str(cid), default)
     except Exception:
         return default
+
 
 def update_setting(chat_id: Any, key: str, value: Any):
     cid = _ensure_id(chat_id) or str(chat_id)
