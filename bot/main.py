@@ -23,15 +23,21 @@ from pyrogram.session import StringSession
 # System time check
 # -----------------------------
 MAX_OFFSET = 5
+
+
 def check_system_time():
     now_utc = datetime.now(timezone.utc).timestamp()
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
+        print(
+            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
+        )
         sys.exit(1)
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
+
+
 check_system_time()
 
 # -----------------------------
@@ -72,12 +78,14 @@ else:
         bot_token=BOT_TOKEN,
     )
 
+
 # -----------------------------
 # Private messages
 # -----------------------------
 @app.on_message(filters.private)
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
+
 
 # -----------------------------
 # Callback queries
@@ -86,6 +94,7 @@ async def pm_block(client, message):
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
+
 
 # -----------------------------
 # Group messages
@@ -96,6 +105,7 @@ async def group_handler(client, message):
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
+
 
 # -----------------------------
 # Admin broadcast
@@ -108,17 +118,21 @@ async def broadcast_handler(client, message):
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
 
+
 # -----------------------------
 # FastAPI for Koyeb health check
 # -----------------------------
 fastapi_app = FastAPI()
 
+
 @fastapi_app.get("/")
 async def health():
     return {"status": "ok"}
 
+
 def run_health_server():
     uvicorn.run(fastapi_app, host="0.0.0.0", port=8080, log_level="info")
+
 
 # -----------------------------
 # Run bot + health server
