@@ -32,7 +32,7 @@ INDEX_CHANNEL_ID: Optional[int] = (
 )
 
 FORCE_SUB_CHANNELS: list[str] = [
-    s for s in os.environ.get("FORCE_SUB_CHANNELS", "-1002055023335").split(",") if s
+    s for s in os.environ.get("FORCE_SUB_CHANNELS", "sandalwood_kannada_moviesz").split(",") if s
 ]
 
 # -----------------------------
