@@ -1,34 +1,48 @@
 import os
-from typing import List
+from typing import List, Optional
 
-
-# Environment / runtime configuration
-# It's safer to keep defaults empty so deployments must explicitly set credentials.
+# -----------------------------
+# Helpers
+# -----------------------------
 def _csv_to_int_list(s: str) -> List[int]:
+    """Convert comma-separated string to list of ints, safely."""
     if not s:
         return []
     return [int(x) for x in s.split(",") if x.strip()]
 
+# -----------------------------
+# Required credentials
+# -----------------------------
+API_ID: Optional[int] = int(os.environ.get("API_ID")) if os.environ.get("API_ID") else None
+API_HASH: Optional[str] = os.environ.get("API_HASH") or None
+BOT_TOKEN: Optional[str] = os.environ.get("BOT_TOKEN") or None
+MONGO_DB_URI: Optional[str] = os.environ.get("MONGO_DB_URI") or None
 
-API_ID = int(os.environ.get("API_ID")) if os.environ.get("API_ID") else None
-API_HASH = os.environ.get("API_HASH") or None
-BOT_TOKEN = os.environ.get("BOT_TOKEN") or None
-MONGO_DB_URI = os.environ.get("MONGO_DB_URI") or None
-
-# Channel / group defaults (allow comma separated list of ids or usernames)
-INDEX_CHANNEL_ID = (
+# -----------------------------
+# Channels / groups
+# -----------------------------
+INDEX_CHANNEL_ID: Optional[int] = (
     int(os.environ.get("INDEX_CHANNEL_ID"))
     if os.environ.get("INDEX_CHANNEL_ID")
     else None
 )
-FORCE_SUB_CHANNELS = [
+
+FORCE_SUB_CHANNELS: list[str] = [
     s for s in os.environ.get("FORCE_SUB_CHANNELS", "-1002055023335").split(",") if s
 ]
 
-SHORTLINK_URL = os.environ.get("SHORTLINK_URL") or None
-SHORTLINK_API = os.environ.get("SHORTLINK_API") or None
+# -----------------------------
+# Shortlink config
+# -----------------------------
+SHORTLINK_URL: Optional[str] = os.environ.get("SHORTLINK_URL") or None
+SHORTLINK_API: Optional[str] = os.environ.get("SHORTLINK_API") or None
 
-ADMIN_IDS = _csv_to_int_list(os.environ.get("ADMIN_IDS", "2098589219,2068233407"))
+# -----------------------------
+# Admins
+# -----------------------------
+ADMIN_IDS: list[int] = _csv_to_int_list(os.environ.get("ADMIN_IDS", "2098589219,2068233407"))
 
-# default auto delete time in seconds
-AUTO_DELETE_TIME = int(os.environ.get("AUTO_DELETE_TIME", "3000"))
+# -----------------------------
+# Default auto delete time
+# -----------------------------
+AUTO_DELETE_TIME: int = int(os.environ.get("AUTO_DELETE_TIME", "3000"))
