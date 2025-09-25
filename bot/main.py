@@ -1,13 +1,18 @@
 import sys
 import time
 from datetime import datetime, timezone
-
 from config import ADMIN_IDS, API_HASH, API_ID, BOT_TOKEN
 from database import add_user
-from plugins import (auto_delete, auto_filter, broadcast, files_delete,
-                     force_subscribe, manual_filters, settings)
+from plugins import (
+    auto_delete,
+    auto_filter,
+    broadcast,
+    files_delete,
+    force_subscribe,
+    manual_filters,
+    settings,
+)
 from pyrogram import Client, filters
-from pyrogram.raw import functions
 
 # -----------------------------
 # System time check
@@ -15,17 +20,11 @@ from pyrogram.raw import functions
 MAX_OFFSET = 5  # seconds
 
 def check_system_time():
-    """
-    Exits if system time is off by more than MAX_OFFSET seconds.
-    """
     now_utc = datetime.now(timezone.utc).timestamp()
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(
-            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
-        )
-        print("Please sync your server time (NTP/chrony) before starting the bot.")
+        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
         sys.exit(1)
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
@@ -39,10 +38,13 @@ if not API_ID or not API_HASH or not BOT_TOKEN:
     raise RuntimeError("API_ID, API_HASH and BOT_TOKEN must be set in environment")
 
 # -----------------------------
-# Initialize bot
+# Initialize bot with persistent session
 # -----------------------------
 app = Client(
-    "autofilter_bot", api_id=int(API_ID), api_hash=API_HASH, bot_token=BOT_TOKEN
+    "session/bot_session",  # folder will persist session across restarts
+    api_id=int(API_ID),
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
 )
 
 # -----------------------------
@@ -86,5 +88,4 @@ async def broadcast_handler(client, message):
 # -----------------------------
 if __name__ == "__main__":
     print("Instance created. Starting bot...")
-    # Pyrogram v2: run() blocks and keeps bot alive
     app.run()
