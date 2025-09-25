@@ -1,14 +1,13 @@
 from typing import Any, Dict, List, Optional
-
 from config import MONGO_DB_URI
 
 # -------------------------------
 # MongoDB / in-memory setup
 # -------------------------------
 try:
-    from pymongo import MongoClient
-
     if MONGO_DB_URI:
+        from pymongo import MongoClient
+
         _client = MongoClient(MONGO_DB_URI, serverSelectionTimeoutMS=3000)
         _client.server_info()  # force connection
         _db = _client["autofilter_bot"]
@@ -17,15 +16,19 @@ try:
         filters_col = _db["filters"]
         settings_col = _db["settings"]
         broadcast_col = _db["broadcast"]
+        logger_source = "MongoDB"
     else:
         raise Exception("MONGO_DB_URI not configured")
 except Exception:
-    # fallback in-memory
+    # Fallback in-memory
     files_col = {}
     users_col = set()
     filters_col = {}
     settings_col = {}
     broadcast_col = {}
+    logger_source = "In-memory storage"
+
+print(f"[INFO] Database initialized using {logger_source}")
 
 
 # -------------------------------
@@ -64,14 +67,12 @@ def add_file(file_id: Any, file_name: str, message_id: Any, chat_id: Any):
     try:
         if hasattr(files_col, "insert_one"):
             if not files_col.find_one({"file_id": file_id}):
-                files_col.insert_one(
-                    {
-                        "file_id": file_id,
-                        "file_name": file_name,
-                        "message_id": message_id,
-                        "chat_id": chat_id,
-                    }
-                )
+                files_col.insert_one({
+                    "file_id": file_id,
+                    "file_name": file_name,
+                    "message_id": message_id,
+                    "chat_id": chat_id,
+                })
         else:
             files_col[str(file_id)] = {
                 "file_id": file_id,
