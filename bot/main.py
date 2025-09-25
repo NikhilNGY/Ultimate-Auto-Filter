@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from config import ADMIN_IDS, API_HASH, API_ID, BOT_TOKEN
 from database import add_user
 from plugins import (auto_delete, auto_filter, broadcast, files_delete,
-                     fix_code_reviewbot, force_subscribe, manual_filters,
+                      force_subscribe, manual_filters,
                      settings)
 from pyrogram import Client, filters
 from pyrogram.raw import functions
