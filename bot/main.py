@@ -4,8 +4,15 @@ import time
 from datetime import datetime, timezone
 
 from database import add_user
-from plugins import (auto_delete, auto_filter, broadcast, files_delete,
-                     force_subscribe, manual_filters, settings)
+from plugins import (
+    auto_delete,
+    auto_filter,
+    broadcast,
+    files_delete,
+    force_subscribe,
+    manual_filters,
+    settings,
+)
 from pyrogram import Client, filters
 
 # -----------------------------
@@ -18,9 +25,7 @@ def check_system_time():
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(
-            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
-        )
+        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
         sys.exit(1)
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
@@ -51,10 +56,10 @@ if not os.path.exists("session"):
     os.makedirs("session")
 
 # -----------------------------
-# Initialize bot
+# Initialize bot (Pyrogram v2)
 # -----------------------------
 app = Client(
-    session_name="session/autofilter_bot",
+    "session/Ultimate-Auto-Filter",  # session file
     api_id=int(API_ID),
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
