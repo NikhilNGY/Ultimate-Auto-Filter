@@ -1,10 +1,11 @@
-import asyncio
 import os
 import sys
 import time
 from datetime import datetime, timezone
+import threading
+from fastapi import FastAPI
+import uvicorn
 
-from aiohttp import web
 from database import add_user
 from plugins import (
     auto_delete,
@@ -16,26 +17,21 @@ from plugins import (
     settings,
 )
 from pyrogram import Client, filters
+from pyrogram.session import StringSession
 
 # -----------------------------
 # System time check
 # -----------------------------
-MAX_OFFSET = 5  # seconds
-
-
+MAX_OFFSET = 5
 def check_system_time():
     now_utc = datetime.now(timezone.utc).timestamp()
     system_time = time.time()
     offset = abs(system_time - now_utc)
     if offset > MAX_OFFSET:
-        print(
-            f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time."
-        )
+        print(f"[ERROR] System time is off by {offset:.2f}s. Telegram requires correct time.")
         sys.exit(1)
     else:
         print(f"[INFO] System time synchronized ({offset:.2f}s offset).")
-
-
 check_system_time()
 
 # -----------------------------
@@ -45,6 +41,7 @@ API_ID = os.environ.get("API_ID")
 API_HASH = os.environ.get("API_HASH")
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 ADMIN_IDS = os.environ.get("ADMIN_IDS", "")
+SESSION_STRING = os.environ.get("SESSION_STRING", "")
 
 if not API_ID or not API_HASH or not BOT_TOKEN:
     print("[ERROR] API_ID, API_HASH, and BOT_TOKEN must be set!")
@@ -56,20 +53,24 @@ except Exception:
     ADMIN_IDS = []
 
 # -----------------------------
-# Ensure session folder exists
+# Initialize Pyrogram bot
 # -----------------------------
-os.makedirs("session", exist_ok=True)
-
-# -----------------------------
-# Initialize bot
-# -----------------------------
-app = Client(
-    "session/Ultimate-Auto-Filter",  # session file
-    api_id=int(API_ID),
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
-)
-
+if SESSION_STRING:
+    # Use in-memory string session
+    app = Client(
+        StringSession(SESSION_STRING),
+        api_id=int(API_ID),
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN,
+    )
+else:
+    # Use temporary in-memory session
+    app = Client(
+        ":memory:",
+        api_id=int(API_ID),
+        api_hash=API_HASH,
+        bot_token=BOT_TOKEN,
+    )
 
 # -----------------------------
 # Private messages
@@ -78,7 +79,6 @@ app = Client(
 async def pm_block(client, message):
     await message.reply("❌ You can only search files in groups.")
 
-
 # -----------------------------
 # Callback queries
 # -----------------------------
@@ -86,7 +86,6 @@ async def pm_block(client, message):
 async def cb_handler(client, callback_query):
     await settings.callback(client, callback_query)
     await auto_filter.callback(client, callback_query)
-
 
 # -----------------------------
 # Group messages
@@ -97,7 +96,6 @@ async def group_handler(client, message):
     await force_subscribe.check(client, message)
     await auto_filter.handle(client, message)
     await manual_filters.handle(client, message)
-
 
 # -----------------------------
 # Admin broadcast
@@ -110,33 +108,22 @@ async def broadcast_handler(client, message):
     text = message.text.split(None, 1)[1]
     await broadcast.broadcast(client, message, text)
 
-
 # -----------------------------
-# Health endpoint for Koyeb
+# FastAPI for Koyeb health check
 # -----------------------------
-async def health(request):
-    return web.Response(text="✅ Bot is running fine.", status=200)
+fastapi_app = FastAPI()
 
+@fastapi_app.get("/")
+async def health():
+    return {"status": "ok"}
 
 def run_health_server():
-    web_app = web.Application()
-    web_app.router.add_get("/", health)
-    web_app.router.add_get("/health", health)
-    web.run_app(web_app, port=8080)
-
+    uvicorn.run(fastapi_app, host="0.0.0.0", port=8080, log_level="info")
 
 # -----------------------------
-# Run bot
+# Run bot + health server
 # -----------------------------
 if __name__ == "__main__":
-    import threading
-
-    from aiohttp import web
-
     print("Instance created. Starting bot...")
-
-    # Start health server in a separate thread
     threading.Thread(target=run_health_server, daemon=True).start()
-
-    # Run Pyrogram bot
     app.run()
