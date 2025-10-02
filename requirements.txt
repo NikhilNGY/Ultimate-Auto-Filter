@@ -3,7 +3,7 @@ pyrogram==2.0.106
 tgcrypto>=1.2.0          # Optional but highly recommended for Pyrogram speedups
 
 # Database
-pymongo==4.15.1
+pymongo==4.15.2
 dnspython==2.8.0          # Required for MongoDB SRV connections
 
 # HTTP and web frameworks
