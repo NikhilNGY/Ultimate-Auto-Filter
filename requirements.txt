@@ -7,7 +7,7 @@ pymongo==4.15.1
 dnspython==2.8.0          # Required for MongoDB SRV connections
 
 # HTTP and web frameworks
-aiohttp==3.12.15          # Async HTTP client/server
+aiohttp==3.13.1          # Async HTTP client/server
 Flask==3.1.2              # Lightweight web framework
 requests>=2.31.0          # Required for some plugins
 
